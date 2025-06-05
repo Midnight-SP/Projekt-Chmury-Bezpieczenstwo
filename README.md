@@ -1,6 +1,45 @@
 # Projekt łączony dla Technologii Chmurowych i Bezpieczeństwa Aplikacji Webowych
 
-Autor: Michał Ryduchowski
+## Autor: Michał Ryduchowski
+
+## Informacje
+
+### Multiplatformowość
+
+Aby zbudować obrazy Docker dla wielu architektur (np. `amd64` i `arm64`), użyj narzędzia `docker buildx`. Przykładowa komenda:
+
+```bash
+docker buildx build --platform linux/amd64,linux/arm64 -t twoj-obraz:latest .
+```
+
+Powyższa komenda tworzy obraz kompatybilny zarówno z procesorami x86_64 (`amd64`), jak i ARM64. Upewnij się, że masz skonfigurowany builder:
+
+```bash
+docker buildx create --name multiarch-builder --use
+docker buildx inspect --bootstrap
+```
+
+Aby wypchnąć obraz do rejestru (np. Docker Hub):
+
+```bash
+docker buildx build --platform linux/amd64,linux/arm64 -t twoj-login/twoj-obraz:latest --push .
+```
+
+Możesz także uruchomić kontenery na różnych urządzeniach (np. Raspberry Pi, Mac z Apple Silicon, serwery x86) bez konieczności przebudowywania obrazów:
+
+```bash
+docker run --rm -p 8080:80 twoj-login/twoj-obraz:latest
+```
+
+Aby sprawdzić dostępne platformy dla danego obrazu:
+
+```bash
+docker buildx imagetools inspect twoj-login/twoj-obraz:latest
+```
+
+Dzięki temu projekt może być uruchamiany na wielu systemach operacyjnych i architekturach sprzętowych, co zwiększa jego uniwersalność i dostępność.
+
+# Wymagania
 
 ## Projekt: Technologie Chmurowe
 

@@ -21,7 +21,7 @@
     </footer>
     <script>
         // Fetch users from the backend API
-        fetch('http://localhost:5000/users')
+        fetch('/users')
             .then(response => response.json())
             .then(data => {
                 const usersList = document.getElementById('users-list');
