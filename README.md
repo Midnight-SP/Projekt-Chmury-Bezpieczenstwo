@@ -39,6 +39,56 @@ docker buildx imagetools inspect twoj-login/twoj-obraz:latest
 
 Dzięki temu projekt może być uruchamiany na wielu systemach operacyjnych i architekturach sprzętowych, co zwiększa jego uniwersalność i dostępność.
 
+## Uruchomienie projektu na Kubernetes z Ingress (Minikube)
+
+### 1. Zbuduj obrazy Dockera lokalnie
+
+W katalogu głównym repozytorium:
+```bash
+docker build -t frontend:latest ./frontend
+docker build -t backend:latest ./backend
+```
+
+### 2. Ustaw środowisko Dockera na Minikube
+
+```bash
+minikube docker-env
+```
+Następnie wykonaj polecenie wyświetlone przez Minikube (np. na Windows: `& minikube -p minikube docker-env | Invoke-Expression`).
+
+### 3. Uruchom Minikube i włącz Ingress
+
+```bash
+minikube start
+minikube addons enable ingress
+```
+
+### 4. Zastosuj manifesty Kubernetes
+
+```bash
+kubectl apply -f k8s/
+```
+
+### 5. Uruchom tunel Minikube (w nowym terminalu)
+
+```bash
+minikube tunnel
+```
+Pozostaw to okno otwarte przez cały czas działania aplikacji.
+
+### 6. Otwórz aplikację w przeglądarce
+
+Przejdź do:
+```
+http://127.0.0.1/
+```
+Frontend powinien się wyświetlić, a żądania do `/users` będą przekierowane przez Ingress do backendu.
+
+---
+
+**Podsumowanie:**  
+Po wykonaniu powyższych kroków aplikacja powinna być dostępna pod `http://127.0.0.1/` z pełnym routingiem przez Ingress.
+
 # Wymagania
 
 ## Projekt: Technologie Chmurowe
