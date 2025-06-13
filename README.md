@@ -89,6 +89,67 @@ Frontend powinien się wyświetlić, a żądania do `/users` będą przekierowan
 **Podsumowanie:**  
 Po wykonaniu powyższych kroków aplikacja powinna być dostępna pod `http://127.0.0.1/` z pełnym routingiem przez Ingress.
 
+## Monitoring (Prometheus + Grafana)
+
+### 1. Zainstaluj Helm (jeśli jeszcze nie masz)
+
+Pobierz i rozpakuj plik `helm-vX.Y.Z-windows-amd64.zip` z [https://github.com/helm/helm/releases/latest](https://github.com/helm/helm/releases/latest),  
+skopiuj `helm.exe` do folderu w PATH i sprawdź `helm version`.
+
+### 2. Dodaj repozytorium Helm Prometheus Community
+
+```bash
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+```
+
+### 3. Zainstaluj Prometheus + Grafana
+
+```bash
+helm install prometheus prometheus-community/kube-prometheus-stack
+```
+
+### 4. Otwórz Grafanę
+
+Znajdź nazwę serwisu Grafany:
+```bash
+kubectl get svc
+```
+Powinieneś zobaczyć coś jak `prometheus-grafana`.
+
+Uruchom port-forward:
+```bash
+kubectl port-forward svc/prometheus-grafana 3000:80
+```
+Teraz Grafana będzie dostępna na [http://localhost:3000](http://localhost:3000).
+
+### 5. Zaloguj się do Grafany
+
+Login: `admin`  
+Hasło uzyskasz poleceniem (w PowerShell):
+
+```powershell
+kubectl get secret prometheus-grafana -o jsonpath="{.data.admin-password}" | %{ [System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($_)) }
+```
+
+### 6. Otwórz dashboard
+
+Po zalogowaniu kliknij **+ → Import** i wklej np. ID `315` (Kubernetes / Compute Resources / Pod) lub `1860` (Kubernetes cluster monitoring).
+
+![monitoring dla frontendu](preview/frontend_monitoring.png)
+---
+
+Po tych krokach masz pełny monitoring klastra i aplikacji.
+
+<div style="color: red; font-weight: bold">
+
+## **WAŻNE DO ZROBIENIA NA KONIEC!!!**
+- **Publikacja na Docker Hub**
+- **Helm**
+- **GitHub Actions**
+
+</div>
+
 # Wymagania
 
 ## Projekt: Technologie Chmurowe
