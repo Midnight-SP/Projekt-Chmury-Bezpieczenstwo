@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const dotenv = require('dotenv');
 const { Pool } = require('pg'); // Import PostgreSQL client
 const cors = require('cors');
+const { auth } = require('express-oauth2-jwt-bearer');
 
 dotenv.config(); // Load environment variables from .env
 
@@ -13,6 +14,14 @@ const PORT = process.env.PORT || 3000;
 app.use(cors()); // Enable CORS
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+// Middleware do weryfikacji tokenów JWT z Keycloak
+app.use(
+  auth({
+    issuerBaseURL: 'http://localhost:8080/realms/projekt', // adres Keycloak + realm
+    audience: 'frontend', // client_id z Keycloak
+  })
+);
 
 // Sample route
 app.get('/', (req, res) => {
