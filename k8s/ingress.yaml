@@ -20,18 +20,18 @@ spec:
               service:
                 name: backend
                 port:
-                  number: 3000
+                  number: 80
           - path: /realms
             pathType: Prefix
             backend:
               service:
                 name: keycloak
                 port:
-                  number: 80
+                  name: http
           - path: /resources
             pathType: Prefix
             backend:
               service:
                 name: keycloak
                 port:
-                  number: 80
+                  name: http
