@@ -22,6 +22,20 @@ jobs:
           npm ci
           npm run build
 
+      - name: Lint & Test Frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run lint
+          npm test
+
+      - name: Lint & Test Backend
+        working-directory: backend
+        run: |
+          npm ci
+          npm run lint
+          npm test
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
 

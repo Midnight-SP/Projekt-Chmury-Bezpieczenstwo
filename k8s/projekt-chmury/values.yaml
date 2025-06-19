@@ -1,9 +1,9 @@
 replicaCount: 1
 
 image:
-  repository: nginx
-  pullPolicy: IfNotPresent
-  tag: ""
+  repository: m1dnightsp/frontend
+  tag: "latest"       # albo {{ .Chart.AppVersion }}
+  pullPolicy: Always
 
 service:
   type: ClusterIP

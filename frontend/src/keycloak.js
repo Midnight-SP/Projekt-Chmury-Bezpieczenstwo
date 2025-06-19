@@ -1,7 +1,7 @@
 import Keycloak from 'keycloak-js';
 
 const keycloak = new Keycloak({
-  url: 'http://127.0.0.1/',
+  url: window.location.origin + '/realms',
   realm: 'projekt',
   clientId: 'frontend',
   flow: 'standard',

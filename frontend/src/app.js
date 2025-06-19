@@ -9,22 +9,22 @@ function App() {
   const [users, setUsers] = useState([]);
 
   useEffect(() => {
-    keycloak.init({ onLoad: 'login-required', checkLoginIframe: false, pkceMethod: 'S256' })
+    keycloak
+      .init({ onLoad: 'login-required', checkLoginIframe: false, pkceMethod: 'S256' })
       .then((authenticated) => {
-        setAuth(authenticated);
-        if (authenticated) {
-          fetch('/products', {
-            headers: { Authorization: 'Bearer ' + keycloak.token }
-          })
-            .then(r => r.json())
-            .then(setProducts);
+        if (!authenticated) return;
+        // pokaż w konsoli całą zdekodowaną część tokena
+        console.log('tokenParsed:', keycloak.tokenParsed);
+        // a stąd odczytasz konkretnie aud
+        console.log('audience (aud):', keycloak.tokenParsed.aud);
 
-          fetch('/kc-users', {
-            headers: { Authorization: 'Bearer ' + keycloak.token }
-          })
-            .then(r => r.json())
-            .then(setUsers);
-        }
+        fetch('/products', { headers: { Authorization: 'Bearer ' + keycloak.token }})
+          .then(r => r.json())
+          .then(setProducts);
+
+        fetch('/kc-users',{ headers: { Authorization: 'Bearer ' + keycloak.token }})
+          .then(r => r.json())
+          .then(setUsers);
       });
   }, []);
 

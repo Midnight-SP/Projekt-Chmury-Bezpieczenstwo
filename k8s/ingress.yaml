@@ -48,11 +48,11 @@ spec:
               service:
                 name: keycloak
                 port:
-                  name: http
+                  number: 8080
           - path: /resources
             pathType: Prefix
             backend:
               service:
                 name: keycloak
                 port:
-                  name: http
+                  number: 8080
