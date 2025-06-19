@@ -17,6 +17,16 @@ data:
           "standardFlowEnabled": true,
           "redirectUris": ["http://127.0.0.1/*"],
           "protocol": "openid-connect"
+        },
+        {
+          "clientId": "backend-admin",
+          "publicClient": false,
+          "enabled": true,
+          "secret": "Zm9vYmFyMTIzIT8=",
+          "serviceAccountsEnabled": true,
+          "directAccessGrantsEnabled": false,
+          "standardFlowEnabled": false,
+          "protocol": "openid-connect"
         }
       ],
       "users": [

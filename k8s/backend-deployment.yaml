@@ -19,12 +19,21 @@ spec:
         ports:
           - containerPort: 3000
         env:
+          - name: KC_ADMIN_CLIENT_ID
+            value: "backend-admin"
+          - name: KC_ADMIN_CLIENT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: backend-secret
+                key: KC_ADMIN_SECRET
           - name: KEYCLOAK_BASE_URL
-            value: "http://127.0.0.1"               # ten sam origin co w Keycloak adapterze w FE
+            value: "http://keycloak:8080"
           - name: KEYCLOAK_REALM
             value: "projekt"
+          # możesz zostawić KEYCLOAK_ISSUER na 127.0.0.1 (to co masz w „iss” tokena),
+          # albo w ogóle go nie używać w kodzie
           - name: KEYCLOAK_ISSUER
-            value: "http://127.0.0.1/realms/projekt" # wyrównane do token.iss
+            value: "http://127.0.0.1/realms/projekt"
           - name: KEYCLOAK_AUDIENCE
             value: "frontend"
           - name: DB_HOST

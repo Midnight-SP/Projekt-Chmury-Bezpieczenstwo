@@ -6,7 +6,7 @@ function App() {
   const [auth, setAuth] = useState(false);
   const [products, setProducts] = useState([]);
   const [cart, setCart] = useState([]);
-  const [users, setUsers] = useState([]);
+  // const [users, setUsers] = useState([]);   // ← można usunąć lub zostawić nieużywane
 
   useEffect(() => {
     keycloak
@@ -19,26 +19,21 @@ function App() {
         fetch('/products', {
           headers: { Authorization: 'Bearer ' + keycloak.token }
         })
-          .then(r => {
-            if (!r.ok) throw new Error(`Products fetch failed: ${r.status}`);
-            return r.json();
-          })
-          .then(data =>
-            // rzutujemy ponownie, żeby mieć pewność, że price jest number
-            setProducts(data.map(p => ({ ...p, price: Number(p.price) })))
-          )
-          .catch(err => console.error(err));
+          .then(r => r.ok ? r.json() : [])
+          .then(data => setProducts(
+            Array.isArray(data)
+              ? data.map(p => ({ ...p, price: Number(p.price) }))
+              : []
+          ))
+          .catch(() => setProducts([]));
 
-        // KC-USERS
-        fetch('/kc-users', {
-          headers: { Authorization: 'Bearer ' + keycloak.token }
-        })
-          .then(r => {
-            if (!r.ok) return r.json().then(e => { throw e; });
-            return r.json();
-          })
-          .then(setUsers)
-          .catch(err => console.error('KC-users error:', err));
+        // KC-USERS – tymczasowo wyłączone
+        // fetch('/kc-users', {
+        //   headers: { Authorization: 'Bearer ' + keycloak.token }
+        // })
+        //   .then(r => r.ok ? r.json() : [])
+        //   .then(setUsers)
+        //   .catch(() => setUsers([]));
       });
   }, []);
 
@@ -65,16 +60,19 @@ function App() {
   return (
     <div style={{ padding: '2rem' }}>
       <h1>Sklepik</h1>
+
+      {/*
       <h2>Użytkownicy Keycloak</h2>
       <ul>
         {users.map(u => <li key={u.id}>{u.username} ({u.email})</li>)}
       </ul>
+      */}
+
       <div style={{ display: 'flex', gap: '2rem' }}>
         <div>
           <h2>Produkty</h2>
           <ul>
             {products.map(p =>
-              // teraz price.toFixed() jest bezpieczne, bo price to Number
               <li key={p.id}>
                 {p.name} – {p.price.toFixed(2)} zł
                 <button onClick={() => addToCart(p)}>Dodaj</button>
@@ -92,7 +90,7 @@ function App() {
           {cart.length>0 && <button onClick={checkout}>Zamów</button>}
         </div>
       </div>
-      <button onClick={()=>keycloak.logout()}>Wyloguj</button>
+      <button onClick={() => keycloak.logout()}>Wyloguj</button>
     </div>
   );
 }

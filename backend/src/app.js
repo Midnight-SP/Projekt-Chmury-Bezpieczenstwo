@@ -6,6 +6,7 @@ const cors = require('cors');
 const { auth } = require('express-oauth2-jwt-bearer');
 const fetch = require('node-fetch'); // Import fetch for making HTTP requests
 const checkJwt = require('./auth');
+const { getAdminToken } = require('./kc-admin');
 
 dotenv.config(); // Load environment variables from .env
 
@@ -131,32 +132,19 @@ app.get('/orders', async (req, res) => {
 });
 
 // Endpoint do pobierania użytkowników z Keycloak (bez ról)
-app.get('/kc-users', async (req, res) => {
-  const token = req.headers.authorization?.split(' ')[1];
-  const base = process.env.KEYCLOAK_BASE_URL;
-  const realm = process.env.KEYCLOAK_REALM;
-
+app.get('/kc-users', async (_req, res) => {
   try {
-    const kcRes = await fetch(`${base}/admin/realms/${realm}/users`, {
-      headers: { Authorization: 'Bearer ' + token }
-    });
-    const text = await kcRes.text();
-    if (!kcRes.ok) {
-      console.error('KC admin fetch failed:', text);
-      return res
-        .status(kcRes.status)
-        .json({ message: 'Error fetching Keycloak users', details: text });
-    }
-    const raw = JSON.parse(text);
-    const users = raw.map(u=>({
-      id: u.id,
-      username: u.username,
-      email: u.email,
-      enabled: u.enabled
-    }));
-    res.json(users);
-  } catch (e) {
-    console.error('Unexpected error:', e);
-    res.status(500).json({ message:'Internal Server Error', error: e.message });
+    const token = await getAdminToken();
+    const url = `${process.env.KEYCLOAK_BASE_URL}/admin/realms/${process.env.KEYCLOAK_REALM}/users`;
+    const kcRes = await fetch(url, { headers:{ Authorization:'Bearer '+token } });
+    const users = await kcRes.json();
+    if (!kcRes.ok) return res.status(kcRes.status).json({ message:'KC admin API error', details:users });
+    // zwracamy tylko wybrane pola
+    res.json(users.map(u => ({
+      id: u.id, username: u.username, email: u.email, enabled: u.enabled
+    })));
+  } catch(e) {
+    console.error(e);
+    res.status(500).json({ message:'Internal Server Error', error:e.message });
   }
 });
