@@ -17,15 +17,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // publiczny healthcheck
-app.get('/health', (_req, res) => res.sendStatus(200));
-
-// teraz auth middleware
-app.use(
-  auth({
-    issuerBaseURL: process.env.KEYCLOAK_ISSUER,
-    audience:     process.env.KEYCLOAK_AUDIENCE
-  })
-);
+app.get('/health', (_req, res) => res.json({ status:"ok" }));
 
 // Sample route
 app.get('/', (req, res) => {
