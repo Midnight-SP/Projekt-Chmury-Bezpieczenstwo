@@ -15,7 +15,7 @@ spec:
       containers:
       - name: backend
         image: m1dnightsp/backend:latest
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         ports:
           - containerPort: 3000
         resources:
@@ -32,8 +32,6 @@ spec:
             value: "projekt"
           - name: KEYCLOAK_ISSUER
             value: "http://keycloak:8080/realms/projekt"
-          - name: KEYCLOAK_JWKS_URI
-            value: "http://keycloak:8080/realms/projekt/protocol/openid-connect/certs"
           - name: KEYCLOAK_AUDIENCE
             value: "frontend"
           - name: DB_HOST

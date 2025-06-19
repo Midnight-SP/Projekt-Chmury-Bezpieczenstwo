@@ -141,15 +141,6 @@ Po zalogowaniu kliknij **+ → Import** i wklej np. ID `315` (Kubernetes / Compu
 
 Po tych krokach masz pełny monitoring klastra i aplikacji.
 
-<div style="color: red; font-weight: bold">
-
-## **WAŻNE DO ZROBIENIA NA KONIEC!!!**
-- **Publikacja na Docker Hub**
-- **Helm**
-- **GitHub Actions**
-
-</div>
-
 # Wymagania
 
 ## Projekt: Technologie Chmurowe

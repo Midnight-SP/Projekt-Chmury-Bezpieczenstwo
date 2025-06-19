@@ -12,9 +12,12 @@ spec:
       labels:
         app: postgres
     spec:
+      securityContext:
+        fsGroup: 999            # GID postgres
       containers:
         - name: postgres
-          image: m1dnightsp/postgres:latest
+          image: m1dnightsp/database:latest
+          imagePullPolicy: Always
           env:
             - name: POSTGRES_DB
               value: "mydatabase"
@@ -32,14 +35,13 @@ spec:
               memory: "512Mi"
               cpu: "500m"
           volumeMounts:
-            - name: postgres-storage
+            - name: temp-data
               mountPath: /var/lib/postgresql/data
             - name: init-sql
               mountPath: /docker-entrypoint-initdb.d/
       volumes:
-        - name: postgres-storage
-          persistentVolumeClaim:
-            claimName: postgres-pvc
+        - name: temp-data
+          emptyDir: {}
         - name: init-sql
           configMap:
             name: postgres-init-sql

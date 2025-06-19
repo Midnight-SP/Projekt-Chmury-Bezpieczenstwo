@@ -18,20 +18,12 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // Middleware do weryfikacji tokenów JWT z Keycloak
 const issuer = process.env.KEYCLOAK_ISSUER
-  || 'http://127.0.0.1/realms/projekt';
-const jwksUri = process.env.KEYCLOAK_JWKS_URI
-  || 'http://keycloak:8080/realms/projekt/protocol/openid-connect/certs';
-// dodajemy audience
-const audience = process.env.KEYCLOAK_AUDIENCE || 'account';
+  || 'http://keycloak:8080/realms/projekt';
 
 app.use(
   auth({
-    issuerBaseURL: issuer,
-    authorizationServerMetadata: {
-      issuer: issuer,
-      jwks_uri: jwksUri
-    },
-    audience: audience          // ← tutaj
+    issuerBaseURL: issuer,                  // np. "http://keycloak:8080/realms/projekt"
+    audience: process.env.KEYCLOAK_AUDIENCE  // np. "frontend"
   })
 );
 
