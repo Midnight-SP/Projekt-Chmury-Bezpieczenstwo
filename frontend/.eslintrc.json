@@ -1,4 +1,12 @@
 {
   "extends": ["react-app"],
-  "rules": {}
+  "rules": {},
+  "overrides": [
+    {
+      "files": ["src/**/*.test.js"],
+      "rules": {
+        "import/first": "off"
+      }
+    }
+  ]
 }

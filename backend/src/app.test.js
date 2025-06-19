@@ -1,9 +1,5 @@
 import '@testing-library/jest-dom';
-import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
-import keycloak from './keycloak';
-import App from './app';
-
+/* eslint-disable import/first */
 jest.mock('./keycloak', () => ({
   __esModule: true,
   default: {
@@ -12,6 +8,12 @@ jest.mock('./keycloak', () => ({
     tokenParsed: { aud: 'frontend' },
   },
 }));
+/* eslint-enable import/first */
+
+// usuń import React, jeśli go nie używasz w tym teście
+import { render, screen, waitFor } from '@testing-library/react';
+import keycloak from './keycloak';
+import App from './app';
 
 describe('App component', () => {
   beforeEach(() => {

@@ -7,5 +7,13 @@
   "extends": ["airbnb-base"],
   "rules": {
     "no-console": "off"
-  }
+  },
+  "overrides": [
+    {
+      "files": ["src/**/*.test.js"],
+      "rules": {
+        "import/first": "off"
+      }
+    }
+  ]
 }

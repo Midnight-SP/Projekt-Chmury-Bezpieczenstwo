@@ -1,18 +1,17 @@
 import '@testing-library/jest-dom';
-import keycloak from './keycloak';
-import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
-import App from './app';
 
-// Accept: "We recommend installing an extension to run jest tests."
 jest.mock('./keycloak', () => ({
-    __esModule: true,
-    default: {
-        init: jest.fn().mockResolvedValue(true),
-        token: 'test-token',
-        tokenParsed: { aud: 'frontend' }
-    }
+  __esModule: true,
+  default: {
+    init: jest.fn().mockResolvedValue(true),
+    token: 'test-token',
+    tokenParsed: { aud: 'frontend' }
+  }
 }));
+
+import { render, screen, waitFor } from '@testing-library/react';
+import keycloak from './keycloak';
+import App from './app';
 
 describe('App component', () => {
     beforeEach(() => jest.clearAllMocks());
