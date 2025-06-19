@@ -4,8 +4,8 @@ jest.mock('./keycloak', () => ({
   default: {
     init: jest.fn().mockResolvedValue(true),
     token: 'test-token',
-    tokenParsed: { aud: 'frontend' }
-  }
+    tokenParsed: { aud: 'frontend' },
+  },
 }));
 /* eslint-enable import/first */
 
