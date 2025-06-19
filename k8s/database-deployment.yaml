@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: postgres:latest
+          image: m1dnightsp/postgres:latest
           env:
             - name: POSTGRES_DB
               value: "mydatabase"
