@@ -1,4 +1,9 @@
 import '@testing-library/jest-dom';
+import React from 'react';
+import { render, screen, waitFor } from '@testing-library/react';
+import keycloak from './keycloak';
+import App from './app';
+
 jest.mock('./keycloak', () => ({
   __esModule: true,
   default: {
@@ -7,11 +12,6 @@ jest.mock('./keycloak', () => ({
     tokenParsed: { aud: 'frontend' },
   },
 }));
-
-import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
-import keycloak from './keycloak';
-import App from './app';
 
 describe('App component', () => {
   beforeEach(() => {
