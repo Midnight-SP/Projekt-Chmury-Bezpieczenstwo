@@ -20,11 +20,11 @@ spec:
           - containerPort: 3000
         env:
           - name: KEYCLOAK_BASE_URL
-            value: "http://keycloak:8080"
+            value: "http://127.0.0.1"               # ten sam origin co w Keycloak adapterze w FE
           - name: KEYCLOAK_REALM
             value: "projekt"
           - name: KEYCLOAK_ISSUER
-            value: "http://keycloak:8080/realms/projekt"
+            value: "http://127.0.0.1/realms/projekt" # wyrównane do token.iss
           - name: KEYCLOAK_AUDIENCE
             value: "frontend"
           - name: DB_HOST
@@ -63,7 +63,7 @@ spec:
 
         readinessProbe:
           httpGet:
-            path: /
+            path: /health
             port: 3000
           initialDelaySeconds: 5
           periodSeconds: 5

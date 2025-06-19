@@ -16,13 +16,14 @@ app.use(cors()); // Enable CORS
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Middleware do weryfikacji tokenów JWT z Keycloak
-const issuer = process.env.KEYCLOAK_ISSUER || 'http://127.0.0.1/realms/projekt';
+// publiczny healthcheck
+app.get('/health', (_req, res) => res.sendStatus(200));
 
+// teraz auth middleware
 app.use(
   auth({
-    issuerBaseURL: issuer,
-    audience: process.env.KEYCLOAK_AUDIENCE // np. "frontend" albo z jwt.io odczytany 'aud'
+    issuerBaseURL: process.env.KEYCLOAK_ISSUER,
+    audience:     process.env.KEYCLOAK_AUDIENCE
   })
 );
 
@@ -30,9 +31,6 @@ app.use(
 app.get('/', (req, res) => {
     res.send('Welcome to the Cloud Technologies Project Backend!');
 });
-
-// Kubernetes livenessProbe needs this
-app.get('/health', (_req, res) => res.sendStatus(200));
 
 // Start the server
 app.listen(PORT, () => {
