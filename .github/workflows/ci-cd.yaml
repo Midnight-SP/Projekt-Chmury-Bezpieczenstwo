@@ -80,12 +80,18 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Pull built images
+        run: |
+          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/frontend:${{ github.sha }}
+          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/backend:${{ github.sha }}
+          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/database:${{ github.sha }}
+
       - name: Set up Kind
         uses: engineerd/setup-kind@v0.5.0
         with:
           version: v0.20.0
 
-      - name: Load Docker images into Kind
+      - name: Load images into Kind
         run: |
           kind load docker-image ${{ secrets.DOCKERHUB_USERNAME }}/frontend:${{ github.sha }}
           kind load docker-image ${{ secrets.DOCKERHUB_USERNAME }}/backend:${{ github.sha }}
