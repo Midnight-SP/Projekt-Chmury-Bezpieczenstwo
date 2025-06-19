@@ -79,23 +79,32 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Configure Kubeconfig
+
+      - name: Set up Kind
+        uses: engineerd/setup-kind@v0.5.0
+        with:
+          version: v0.20.0
+
+      - name: Load Docker images into Kind
         run: |
-          mkdir -p $HOME/.kube
-          echo "${{ secrets.KUBE_CONFIG }}" > $HOME/.kube/config
-      - name: Deploy to Kubernetes
+          kind load docker-image ${{ secrets.DOCKERHUB_USERNAME }}/frontend:${{ github.sha }}
+          kind load docker-image ${{ secrets.DOCKERHUB_USERNAME }}/backend:${{ github.sha }}
+          kind load docker-image ${{ secrets.DOCKERHUB_USERNAME }}/database:${{ github.sha }}
+
+      - name: Install kubectl
         uses: azure/setup-kubectl@v3
         with:
           version: 'latest'
-      - name: Update images
+
+      - name: Apply Kubernetes manifests
         run: |
-          kubectl config view
-          kubectl set image deployment/frontend \
-            frontend=${{ secrets.DOCKERHUB_USERNAME }}/frontend:${{ github.sha }}
-          kubectl set image deployment/backend \
-            backend=${{ secrets.DOCKERHUB_USERNAME }}/backend:${{ github.sha }}
-          kubectl set image deployment/postgres \
-            postgres=${{ secrets.DOCKERHUB_USERNAME }}/database:${{ github.sha }}
-          kubectl rollout status deployment/frontend
-          kubectl rollout status deployment/backend
-          kubectl rollout status deployment/postgres
+          kubectl apply -f k8s/database-pvc.yaml
+          kubectl apply -f k8s/database-configmap.yml
+          kubectl apply -f k8s/database-deployment.yaml
+          kubectl apply -f k8s/database-service.yaml
+          kubectl apply -f k8s/backend-configmap.yaml
+          kubectl apply -f k8s/backend-secret.yaml
+          kubectl apply -f k8s/backend-deployment.yaml
+          kubectl apply -f k8s/backend-service.yaml
+          kubectl apply -f k8s/frontend-deployment.yaml
+          kubectl apply -f k8s/frontend-service.yaml
