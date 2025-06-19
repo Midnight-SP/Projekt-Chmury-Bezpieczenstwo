@@ -22,7 +22,7 @@ jobs:
         working-directory: frontend
         run: |
           npm ci
-          npm run build
+          npx --yes react-scripts build
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
