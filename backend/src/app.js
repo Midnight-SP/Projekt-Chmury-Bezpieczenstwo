@@ -5,6 +5,7 @@ const { Pool } = require('pg'); // Import PostgreSQL client
 const cors = require('cors');
 const { auth } = require('express-oauth2-jwt-bearer');
 const fetch = require('node-fetch'); // Import fetch for making HTTP requests
+const checkJwt = require('./auth');
 
 dotenv.config(); // Load environment variables from .env
 
@@ -15,6 +16,7 @@ const PORT = process.env.PORT || 3000;
 app.use(cors()); // Enable CORS
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(checkJwt);
 
 // publiczny healthcheck
 app.get('/health', (_req, res) => res.json({ status:"ok" }));
@@ -62,14 +64,17 @@ app.post('/users', async (req, res) => {
     }
 });
 
-// Pobierz wszystkie produkty
+// Pobierz wszystkie produkty, rzutując price na float
 app.get('/products', async (req, res) => {
   try {
-    const { rows } = await pool.query('SELECT * FROM products');
+    const { rows } = await pool.query(`
+      SELECT id, name, description, price::float AS price, stock
+      FROM products
+    `);
     res.json(rows);
   } catch (e) {
     console.error(e);
-    res.status(500).send('Error fetching products');
+    res.status(500).json({ message: 'Error fetching products', error: e.message });
   }
 });
 
@@ -126,22 +131,22 @@ app.get('/orders', async (req, res) => {
 // Endpoint do pobierania użytkowników z Keycloak (bez ról)
 app.get('/kc-users', async (req, res) => {
   const token = req.headers.authorization?.split(' ')[1];
-  // baza URL i nazwa realm z env
-  const keycloakBase = process.env.KEYCLOAK_BASE_URL || 'http://127.0.0.1';
-  const realm       = process.env.KEYCLOAK_REALM     || 'projekt';
-  const adminUrl    = `${keycloakBase}/admin/realms/${realm}`;
+  const base = process.env.KEYCLOAK_BASE_URL;
+  const realm = process.env.KEYCLOAK_REALM;
 
   try {
-    const kcRes = await fetch(
-      `${adminUrl}/users`,
-      { headers: { Authorization: 'Bearer ' + token } }
-    );
+    const kcRes = await fetch(`${base}/admin/realms/${realm}/users`, {
+      headers: { Authorization: 'Bearer ' + token }
+    });
+    const text = await kcRes.text();
     if (!kcRes.ok) {
-      console.error('KC admin fetch failed:', await kcRes.text());
-      return res.status(kcRes.status).send('Error fetching Keycloak users');
+      console.error('KC admin fetch failed:', text);
+      return res
+        .status(kcRes.status)
+        .json({ message: 'Error fetching Keycloak users', details: text });
     }
-    const raw = await kcRes.json();
-    const users = raw.map(u => ({
+    const raw = JSON.parse(text);
+    const users = raw.map(u=>({
       id: u.id,
       username: u.username,
       email: u.email,
@@ -149,7 +154,7 @@ app.get('/kc-users', async (req, res) => {
     }));
     res.json(users);
   } catch (e) {
-    console.error('Unexpected error fetching KC users:', e);
-    res.status(500).send('Error fetching Keycloak users');
+    console.error('Unexpected error:', e);
+    res.status(500).json({ message:'Internal Server Error', error: e.message });
   }
 });

@@ -14,18 +14,31 @@ function App() {
       .then((authenticated) => {
         if (!authenticated) return;
         setAuth(true);
-        // pokaż w konsoli całą zdekodowaną część tokena
-        console.log('tokenParsed:', keycloak.tokenParsed);
-        // a stąd odczytasz konkretnie aud
-        console.log('audience (aud):', keycloak.tokenParsed.aud);
 
-        fetch('/products', { headers: { Authorization: 'Bearer ' + keycloak.token }})
-          .then(r => r.json())
-          .then(setProducts);
+        // PRODUCTS
+        fetch('/products', {
+          headers: { Authorization: 'Bearer ' + keycloak.token }
+        })
+          .then(r => {
+            if (!r.ok) throw new Error(`Products fetch failed: ${r.status}`);
+            return r.json();
+          })
+          .then(data =>
+            // rzutujemy ponownie, żeby mieć pewność, że price jest number
+            setProducts(data.map(p => ({ ...p, price: Number(p.price) })))
+          )
+          .catch(err => console.error(err));
 
-        fetch('/kc-users',{ headers: { Authorization: 'Bearer ' + keycloak.token }})
-          .then(r => r.json())
-          .then(setUsers);
+        // KC-USERS
+        fetch('/kc-users', {
+          headers: { Authorization: 'Bearer ' + keycloak.token }
+        })
+          .then(r => {
+            if (!r.ok) return r.json().then(e => { throw e; });
+            return r.json();
+          })
+          .then(setUsers)
+          .catch(err => console.error('KC-users error:', err));
       });
   }, []);
 
@@ -61,9 +74,10 @@ function App() {
           <h2>Produkty</h2>
           <ul>
             {products.map(p =>
+              // teraz price.toFixed() jest bezpieczne, bo price to Number
               <li key={p.id}>
                 {p.name} – {p.price.toFixed(2)} zł
-                <button onClick={()=>addToCart(p)}>Dodaj</button>
+                <button onClick={() => addToCart(p)}>Dodaj</button>
               </li>
             )}
           </ul>
