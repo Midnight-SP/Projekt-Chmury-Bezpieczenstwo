@@ -13,6 +13,7 @@ function App() {
       .init({ onLoad: 'login-required', checkLoginIframe: false, pkceMethod: 'S256' })
       .then((authenticated) => {
         if (!authenticated) return;
+        setAuth(true);
         // pokaż w konsoli całą zdekodowaną część tokena
         console.log('tokenParsed:', keycloak.tokenParsed);
         // a stąd odczytasz konkretnie aud
@@ -51,6 +52,10 @@ function App() {
   return (
     <div style={{ padding: '2rem' }}>
       <h1>Sklepik</h1>
+      <h2>Użytkownicy Keycloak</h2>
+      <ul>
+        {users.map(u => <li key={u.id}>{u.username} ({u.email})</li>)}
+      </ul>
       <div style={{ display: 'flex', gap: '2rem' }}>
         <div>
           <h2>Produkty</h2>
