@@ -22,8 +22,12 @@ const issuer = process.env.KEYCLOAK_ISSUER
 
 app.use(
   auth({
-    issuerBaseURL: issuer,                  // np. "http://keycloak:8080/realms/projekt"
-    audience: process.env.KEYCLOAK_AUDIENCE  // np. "frontend"
+    issuerBaseURL: process.env.KEYCLOAK_ISSUER,
+    authorizationServerMetadata: {
+      issuer: process.env.KEYCLOAK_ISSUER,
+      jwks_uri: process.env.KEYCLOAK_JWKS_URI
+    },
+    audience: process.env.KEYCLOAK_AUDIENCE
   })
 );
 

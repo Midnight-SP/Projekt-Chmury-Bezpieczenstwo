@@ -31,7 +31,9 @@ spec:
           - name: KEYCLOAK_REALM
             value: "projekt"
           - name: KEYCLOAK_ISSUER
-            value: "http://keycloak:8080/realms/projekt"
+            value: "http://127.0.0.1/realms/projekt"
+          - name: KEYCLOAK_JWKS_URI
+            value: "http://keycloak:8080/realms/projekt/protocol/openid-connect/certs"
           - name: KEYCLOAK_AUDIENCE
             value: "frontend"
           - name: DB_HOST
