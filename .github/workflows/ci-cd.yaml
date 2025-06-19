@@ -8,10 +8,19 @@ on:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install & build frontend assets
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
@@ -34,8 +43,7 @@ jobs:
           file: frontend/Dockerfile.prod
           platforms: linux/amd64,linux/arm64
           push: true
-          cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/frontend:cache
-          cache-to:   type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/frontend:cache,mode=max
+          # tymczasowo wyłącz cache-from/cache-to dla frontend
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/frontend:${{ github.sha }}
             ${{ secrets.DOCKERHUB_USERNAME }}/frontend:latest
