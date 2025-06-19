@@ -32,6 +32,8 @@ jobs:
           file: frontend/Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/frontend:${{ github.sha }}
             ${{ secrets.DOCKERHUB_USERNAME }}/frontend:latest
@@ -43,6 +45,8 @@ jobs:
           file: backend/Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/backend:${{ github.sha }}
             ${{ secrets.DOCKERHUB_USERNAME }}/backend:latest
@@ -54,6 +58,8 @@ jobs:
           file: database/Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/database:${{ github.sha }}
             ${{ secrets.DOCKERHUB_USERNAME }}/database:latest
@@ -64,13 +70,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Set up K8s
+      - name: Deploy to Kubernetes
         uses: azure/setup-kubectl@v3
         with:
           version: 'latest'
-      - name: Deploy manifests
-        run: |
+      - run: |
           kubectl set image deployment/frontend frontend=${{ secrets.DOCKERHUB_USERNAME }}/frontend:${{ github.sha }}
-          kubectl set image deployment/backend backend=${{ secrets.DOCKERHUB_USERNAME }}/backend:${{ github.sha }}
-          # kubectl rollout status deployment/frontend
-          # kubectl rollout status deployment/backend
+          kubectl set image deployment/backend  backend=${{ secrets.DOCKERHUB_USERNAME }}/backend:${{ github.sha }}
+          kubectl set image deployment/postgres postgres=${{ secrets.DOCKERHUB_USERNAME }}/database:${{ github.sha }}
+          kubectl rollout status deployment/frontend
+          kubectl rollout status deployment/backend
+          kubectl rollout status deployment/postgres
