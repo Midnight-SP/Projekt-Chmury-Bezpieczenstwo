@@ -18,20 +18,13 @@ spec:
         imagePullPolicy: Always
         ports:
           - containerPort: 3000
-        resources:
-          requests:
-            memory: "128Mi"
-            cpu: "250m"
-          limits:
-            memory: "256Mi"
-            cpu: "500m"
         env:
           - name: KEYCLOAK_BASE_URL
             value: "http://keycloak:8080"
           - name: KEYCLOAK_REALM
             value: "projekt"
           - name: KEYCLOAK_ISSUER
-            value: "http://127.0.0.1/realms/projekt"
+            value: "http://keycloak:8080/realms/projekt"
           - name: KEYCLOAK_AUDIENCE
             value: "frontend"
           - name: DB_HOST
@@ -59,15 +52,27 @@ spec:
               secretKeyRef:
                 name: backend-secret
                 key: DB_PASSWORD
+
+        # healthchecks
         livenessProbe:
           httpGet:
             path: /health
             port: 3000
           initialDelaySeconds: 15
           periodSeconds: 10
+
         readinessProbe:
           httpGet:
             path: /
             port: 3000
           initialDelaySeconds: 5
           periodSeconds: 5
+
+        # zoptymalizowane zasoby
+        resources:
+          requests:
+            cpu:    "100m"
+            memory: "128Mi"
+          limits:
+            cpu:    "250m"
+            memory: "256Mi"
