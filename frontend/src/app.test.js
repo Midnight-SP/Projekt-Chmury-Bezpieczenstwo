@@ -1,5 +1,4 @@
-import '@testing-library/jest-dom';
-
+/* eslint-disable import/first */
 jest.mock('./keycloak', () => ({
   __esModule: true,
   default: {
@@ -8,7 +7,9 @@ jest.mock('./keycloak', () => ({
     tokenParsed: { aud: 'frontend' }
   }
 }));
+/* eslint-enable import/first */
 
+import '@testing-library/jest-dom';
 import { render, screen, waitFor } from '@testing-library/react';
 import keycloak from './keycloak';
 import App from './app';
