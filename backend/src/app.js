@@ -4,6 +4,7 @@ const dotenv = require('dotenv');
 const { Pool } = require('pg'); // Import PostgreSQL client
 const cors = require('cors');
 const { auth } = require('express-oauth2-jwt-bearer');
+const fetch = require('node-fetch'); // Import fetch for making HTTP requests
 
 dotenv.config(); // Load environment variables from .env
 
@@ -16,10 +17,21 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // Middleware do weryfikacji tokenów JWT z Keycloak
+const issuer = process.env.KEYCLOAK_ISSUER
+  || 'http://127.0.0.1/realms/projekt';
+const jwksUri = process.env.KEYCLOAK_JWKS_URI
+  || 'http://keycloak:8080/realms/projekt/protocol/openid-connect/certs';
+// dodajemy audience
+const audience = process.env.KEYCLOAK_AUDIENCE || 'account';
+
 app.use(
   auth({
-    issuerBaseURL: 'http://localhost:8080/realms/projekt', // adres Keycloak + realm
-    audience: 'frontend', // client_id z Keycloak
+    issuerBaseURL: issuer,
+    authorizationServerMetadata: {
+      issuer: issuer,
+      jwks_uri: jwksUri
+    },
+    audience: audience          // ← tutaj
   })
 );
 
@@ -61,4 +73,90 @@ app.post('/users', async (req, res) => {
         console.error('Error creating user:', error);
         res.status(500).send('Internal Server Error');
     }
+});
+
+// Pobierz wszystkie produkty
+app.get('/products', async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT * FROM products');
+    res.json(rows);
+  } catch (e) {
+    console.error(e);
+    res.status(500).send('Error fetching products');
+  }
+});
+
+// Dodaj nowe zamówienie (z listą pozycji)
+app.post('/orders', async (req, res) => {
+  const userId = req.auth.payload.sub; // załóżmy, że sub to id użytkownika
+  const { items } = req.body; // [{ productId, quantity }, …]
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const orderRes = await client.query(
+      'INSERT INTO orders(user_id) VALUES($1) RETURNING id',
+      [userId]
+    );
+    const orderId = orderRes.rows[0].id;
+    const insertItem = `INSERT INTO order_items(order_id,product_id,quantity) VALUES($1,$2,$3)`;
+    for (let it of items) {
+      await client.query(insertItem, [orderId, it.productId, it.quantity]);
+    }
+    await client.query('COMMIT');
+    res.status(201).json({ orderId });
+  } catch (e) {
+    await client.query('ROLLBACK');
+    console.error(e);
+    res.status(500).send('Error creating order');
+  } finally {
+    client.release();
+  }
+});
+
+// Pobierz zamówienia zalogowanego użytkownika wraz z pozycjami
+app.get('/orders', async (req, res) => {
+  const userId = req.auth.payload.sub;
+  try {
+    const { rows } = await pool.query(
+      `SELECT o.id, o.created_at,
+         json_agg(json_build_object(
+           'productId', oi.product_id,
+           'quantity', oi.quantity
+         )) AS items
+       FROM orders o
+       JOIN order_items oi ON oi.order_id = o.id
+       WHERE o.user_id = $1
+       GROUP BY o.id`,
+      [userId]
+    );
+    res.json(rows);
+  } catch (e) {
+    console.error(e);
+    res.status(500).send('Error fetching orders');
+  }
+});
+
+// Endpoint do pobierania użytkowników z Keycloak (bez ról)
+app.get('/kc-users', async (req, res) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  const kcUrl = 'http://127.0.0.1/realms/projekt';
+  try {
+    const raw = await fetch(
+      `${kcUrl}/admin/realms/projekt/users`,
+      { headers: { Authorization: 'Bearer ' + token } }
+    ).then(r => r.json());
+
+    // filtrowanie – wybieramy tylko id, username, email i enabled
+    const users = raw.map(u => ({
+      id: u.id,
+      username: u.username,
+      email: u.email,
+      enabled: u.enabled
+    }));
+
+    res.json(users);
+  } catch (e) {
+    console.error(e);
+    res.status(500).send('Error fetching Keycloak users');
+  }
 });

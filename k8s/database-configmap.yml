@@ -6,6 +6,7 @@ data:
   init.sql: |
     -- SQL commands to create the database schema and populate it with initial data
 
+    -- istniejące tabele users i posts...
     CREATE TABLE users (
         id SERIAL PRIMARY KEY,
         username VARCHAR(50) NOT NULL,
@@ -13,7 +14,6 @@ data:
         email VARCHAR(100) NOT NULL UNIQUE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
-
     CREATE TABLE posts (
         id SERIAL PRIMARY KEY,
         user_id INT NOT NULL,
@@ -22,7 +22,6 @@ data:
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
-
     INSERT INTO users (username, password, email) VALUES
     ('user1', 'password1', 'user1@example.com'),
     ('user2', 'password2', 'user2@example.com');
@@ -30,3 +29,28 @@ data:
     INSERT INTO posts (user_id, title, content) VALUES
     (1, 'First Post', 'This is the content of the first post.'),
     (2, 'Second Post', 'This is the content of the second post.');
+
+    -- nowe tabele dla sklepiku:
+    CREATE TABLE products (
+      id SERIAL PRIMARY KEY,
+      name VARCHAR(100) NOT NULL,
+      description TEXT,
+      price NUMERIC(10,2) NOT NULL,
+      stock INT NOT NULL DEFAULT 0
+    );
+    INSERT INTO products (name,description,price,stock) VALUES
+      ('Kubek', 'Ceramiczny kubek 300ml', 25.00, 10),
+      ('Koszulka', 'Koszulka bawełniana L', 45.00, 5),
+      ('Długopis', 'Długopis żelowy', 5.00, 100);
+
+    CREATE TABLE orders (
+      id SERIAL PRIMARY KEY,
+      user_id INT NOT NULL REFERENCES users(id),
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE TABLE order_items (
+      id SERIAL PRIMARY KEY,
+      order_id INT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+      product_id INT NOT NULL REFERENCES products(id),
+      quantity INT NOT NULL DEFAULT 1
+    );

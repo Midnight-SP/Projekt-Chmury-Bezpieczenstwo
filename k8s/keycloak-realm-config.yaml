@@ -7,13 +7,14 @@ data:
     {
       "id": "projekt",
       "realm": "projekt",
-      "displayName": "Projekt",
       "enabled": true,
       "clients": [
         {
           "clientId": "frontend",
-          "enabled": true,
           "publicClient": true,
+          "enabled": true,
+          "directAccessGrantsEnabled": false,
+          "standardFlowEnabled": true,
           "redirectUris": ["http://127.0.0.1/*"],
           "protocol": "openid-connect"
         }

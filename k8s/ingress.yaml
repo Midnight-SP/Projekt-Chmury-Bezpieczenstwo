@@ -20,7 +20,28 @@ spec:
               service:
                 name: backend
                 port:
-                  number: 80
+                  number: 3000
+          - path: /products
+            pathType: Prefix
+            backend:
+              service:
+                name: backend
+                port:
+                  number: 3000
+          - path: /orders
+            pathType: Prefix
+            backend:
+              service:
+                name: backend
+                port:
+                  number: 3000
+          - path: /kc-users
+            pathType: Prefix
+            backend:
+              service:
+                name: backend
+                port:
+                  number: 3000
           - path: /realms
             pathType: Prefix
             backend:

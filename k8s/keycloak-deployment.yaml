@@ -12,31 +12,45 @@ spec:
       labels:
         app: keycloak
     spec:
+      initContainers:
+      - name: wait-for-db
+        image: busybox
+        command: ["sh","-c","until nc -z database 5432; do echo Waiting for Postgres…; sleep 2; done"]
+
       containers:
-        - name: keycloak
-          image: quay.io/keycloak/keycloak:18.0.0
-          command:
-            - /opt/keycloak/bin/kc.sh
-          args:
-            - start-dev
-            - --import-realm
-          env:
-            - name: KEYCLOAK_ADMIN
-              value: admin
-            - name: KEYCLOAK_ADMIN_PASSWORD
-              value: admin
-          resources:
-            requests:
-              memory: "512Mi"
-              cpu: "250m"
-            limits:
-              memory: "1Gi"
-              cpu: "500m"
-          volumeMounts:
-            # montujemy tylko pojedynczy plik realm.json
-            - name: realm-import
-              mountPath: /opt/keycloak/data/import/realm.json
-              subPath: realm.json
+      - name: keycloak
+        image: quay.io/keycloak/keycloak:18.0.0
+        env:
+          - name: KEYCLOAK_ADMIN
+            value: admin
+          - name: KEYCLOAK_ADMIN_PASSWORD
+            value: admin
+        command:
+          - /opt/keycloak/bin/kc.sh
+        args:
+          - start-dev
+          - --http-host=0.0.0.0
+          - "-Dkeycloak.migration.action=import"
+          - "-Dkeycloak.migration.provider=singleFile"
+          - "-Dkeycloak.migration.file=/opt/keycloak/data/import/realm.json"
+          - "-Dkeycloak.migration.strategy=IGNORE_EXISTING"
+        ports:
+          - name: http
+            containerPort: 8080
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        volumeMounts:
+          - name: realm-import
+            mountPath: /opt/keycloak/data/import/realm.json
+            subPath: realm.json
+          - name: keycloak-data
+            mountPath: /opt/keycloak/data
+
       volumes:
         - name: realm-import
           configMap:
@@ -44,3 +58,5 @@ spec:
             items:
               - key: realm.json
                 path: realm.json
+        - name: keycloak-data
+          emptyDir: {}             # albo PersistentVolumeClaim

@@ -15,13 +15,13 @@ spec:
       containers:
         - name: frontend
           image: frontend:latest
-          imagePullPolicy: Never
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80
           resources:
             requests:
-              cpu: "100m"
+              cpu: "50m"
               memory: "128Mi"
             limits:
-              cpu: "250m"
+              cpu: "100m"
               memory: "256Mi"
