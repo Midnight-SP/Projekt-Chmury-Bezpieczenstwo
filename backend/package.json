@@ -18,6 +18,8 @@
     "mongoose": "^5.10.9",
     "pg": "^8.11.0",
     "keycloak-js": "^26.2.0",
-    "node-fetch": "^2.6.7"
+    "node-fetch": "^2.6.7",
+    "express-jwt": "^7.7.3",
+    "jwks-rsa": "^2.0.5"
   }
 }

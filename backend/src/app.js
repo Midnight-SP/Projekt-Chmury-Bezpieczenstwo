@@ -16,10 +16,12 @@ const PORT = process.env.PORT || 3000;
 app.use(cors()); // Enable CORS
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(checkJwt);
 
-// publiczny healthcheck
+// publiczny healthcheck MUSI być przed auth
 app.get('/health', (_req, res) => res.json({ status:"ok" }));
+
+// teraz JWT‐middleware chroni tylko pozostałe trasy
+app.use(checkJwt);
 
 // Sample route
 app.get('/', (req, res) => {
