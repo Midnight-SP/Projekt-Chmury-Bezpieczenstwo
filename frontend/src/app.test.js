@@ -3,9 +3,12 @@ import { render, screen } from '@testing-library/react';
 import App from './app';
 
 jest.mock('./keycloak', () => ({
-  init: jest.fn().mockResolvedValue(true),
-  token: 'test-token',
-  tokenParsed: { aud: 'frontend' }
+  __esModule: true,
+  default: {
+    init: jest.fn().mockResolvedValue(true),
+    token: 'test-token',
+    tokenParsed: { aud: 'frontend' }
+  }
 }));
 
 test('pokazuje ekran ładowania', () => {
