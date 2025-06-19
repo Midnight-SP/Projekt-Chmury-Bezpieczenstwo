@@ -20,16 +20,22 @@ spec:
           - containerPort: 3000
         resources:
           requests:
-            cpu: "100m"
             memory: "128Mi"
+            cpu: "250m"
           limits:
-            cpu: "200m"
             memory: "256Mi"
+            cpu: "500m"
         env:
+          - name: KEYCLOAK_BASE_URL
+            value: "http://keycloak:8080"
+          - name: KEYCLOAK_REALM
+            value: "projekt"
           - name: KEYCLOAK_ISSUER
-            value: "http://127.0.0.1/realms/projekt"
+            value: "http://keycloak:8080/realms/projekt"
           - name: KEYCLOAK_JWKS_URI
-            value: "http://127.0.0.1/realms/projekt/protocol/openid-connect/certs"
+            value: "http://keycloak:8080/realms/projekt/protocol/openid-connect/certs"
+          - name: KEYCLOAK_AUDIENCE
+            value: "frontend"
           - name: DB_HOST
             valueFrom:
               configMapKeyRef:
@@ -55,5 +61,3 @@ spec:
               secretKeyRef:
                 name: backend-secret
                 key: DB_PASSWORD
-          - name: KEYCLOAK_AUDIENCE
-            value: "account"

@@ -139,24 +139,30 @@ app.get('/orders', async (req, res) => {
 // Endpoint do pobierania użytkowników z Keycloak (bez ról)
 app.get('/kc-users', async (req, res) => {
   const token = req.headers.authorization?.split(' ')[1];
-  const kcUrl = 'http://127.0.0.1/realms/projekt';
-  try {
-    const raw = await fetch(
-      `${kcUrl}/admin/realms/projekt/users`,
-      { headers: { Authorization: 'Bearer ' + token } }
-    ).then(r => r.json());
+  // baza URL i nazwa realm z env
+  const keycloakBase = process.env.KEYCLOAK_BASE_URL || 'http://127.0.0.1';
+  const realm       = process.env.KEYCLOAK_REALM     || 'projekt';
+  const adminUrl    = `${keycloakBase}/admin/realms/${realm}`;
 
-    // filtrowanie – wybieramy tylko id, username, email i enabled
+  try {
+    const kcRes = await fetch(
+      `${adminUrl}/users`,
+      { headers: { Authorization: 'Bearer ' + token } }
+    );
+    if (!kcRes.ok) {
+      console.error('KC admin fetch failed:', await kcRes.text());
+      return res.status(kcRes.status).send('Error fetching Keycloak users');
+    }
+    const raw = await kcRes.json();
     const users = raw.map(u => ({
       id: u.id,
       username: u.username,
       email: u.email,
       enabled: u.enabled
     }));
-
     res.json(users);
   } catch (e) {
-    console.error(e);
+    console.error('Unexpected error fetching KC users:', e);
     res.status(500).send('Error fetching Keycloak users');
   }
 });
