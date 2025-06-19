@@ -29,11 +29,11 @@ spec:
             - containerPort: 5432
           resources:
             requests:
-              memory: "256Mi"
-              cpu: "250m"
+              cpu:    "100m"
+              memory: "128Mi"
             limits:
-              memory: "512Mi"
-              cpu: "500m"
+              cpu:    "250m"
+              memory: "256Mi"
           volumeMounts:
             - name: temp-data
               mountPath: /var/lib/postgresql/data

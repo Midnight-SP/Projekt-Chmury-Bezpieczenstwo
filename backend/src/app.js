@@ -31,10 +31,14 @@ app.get('/', (req, res) => {
     res.send('Welcome to the Cloud Technologies Project Backend!');
 });
 
+// Kubernetes livenessProbe needs this
+app.get('/health', (_req, res) => res.sendStatus(200));
+
 // Start the server
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
+
 // dodaj eksport aplikacji, by test mógł ją załadować
 module.exports = app;
 
