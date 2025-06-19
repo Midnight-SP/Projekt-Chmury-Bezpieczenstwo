@@ -25,6 +25,19 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Cache frontend node_modules
+        uses: actions/cache@v3
+        with:
+          path: frontend/node_modules
+          key: ${{ runner.os }}-frontend-${{ hashFiles('frontend/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-frontend-
+
+      - name: Install frontend deps
+        run: |
+          cd frontend
+          npm ci
+
       - name: Build & push frontend image
         uses: docker/build-push-action@v4
         with:
@@ -63,21 +76,21 @@ jobs:
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/database:${{ github.sha }}
             ${{ secrets.DOCKERHUB_USERNAME }}/database:latest
-
-  deploy:
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Deploy to Kubernetes
-        uses: azure/setup-kubectl@v3
-        with:
-          version: 'latest'
-      - run: |
-          kubectl set image deployment/frontend frontend=${{ secrets.DOCKERHUB_USERNAME }}/frontend:${{ github.sha }}
-          kubectl set image deployment/backend  backend=${{ secrets.DOCKERHUB_USERNAME }}/backend:${{ github.sha }}
-          kubectl set image deployment/postgres postgres=${{ secrets.DOCKERHUB_USERNAME }}/database:${{ github.sha }}
-          kubectl rollout status deployment/frontend
-          kubectl rollout status deployment/backend
-          kubectl rollout status deployment/postgres
+            
+            #   deploy:
+            #     needs: build-and-push
+            #     runs-on: ubuntu-latest
+            #     steps:
+            #       - name: Checkout
+            #         uses: actions/checkout@v3
+            #       - name: Deploy to Kubernetes
+            #         uses: azure/setup-kubectl@v3
+            #         with:
+            #           version: 'latest'
+            #       - run: |
+            #           kubectl set image deployment/frontend frontend=${{ secrets.DOCKERHUB_USERNAME }}/frontend:${{ github.sha }}
+            #           kubectl set image deployment/backend  backend=${{ secrets.DOCKERHUB_USERNAME }}/backend:${{ github.sha }}
+            #           kubectl set image deployment/postgres postgres=${{ secrets.DOCKERHUB_USERNAME }}/database:${{ github.sha }}
+            #           kubectl rollout status deployment/frontend
+            #           kubectl rollout status deployment/backend
+            #           kubectl rollout status deployment/postgres
