@@ -6,7 +6,6 @@ data:
   init.sql: |
     -- SQL commands to create the database schema and populate it with initial data
 
-    -- istniejące tabele users i posts...
     CREATE TABLE users (
         id SERIAL PRIMARY KEY,
         username VARCHAR(50) NOT NULL,
@@ -15,7 +14,6 @@ data:
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 
-    -- jeśli nie korzystasz już z posts możesz je usunąć
     CREATE TABLE posts (
         id SERIAL PRIMARY KEY,
         user_id INT NOT NULL,
@@ -33,7 +31,6 @@ data:
     (1, 'First Post', 'This is the content of the first post.'),
     (2, 'Second Post', 'This is the content of the second post.');
 
-    -- nowe tabele dla sklepiku:
     CREATE TABLE products (
       id SERIAL PRIMARY KEY,
       name VARCHAR(100) NOT NULL,
@@ -46,7 +43,6 @@ data:
       ('Koszulka', 'Koszulka bawełniana L', 45.00, 5),
       ('Długopis', 'Długopis żelowy', 5.00, 100);
 
-    -- tu była referencja do users.id więc zmieniamy INT→UUID (bez FK)
     CREATE TABLE orders (
       id SERIAL PRIMARY KEY,
       user_id UUID NOT NULL,

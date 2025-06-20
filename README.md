@@ -2,42 +2,7 @@
 
 ## Autor: Michał Ryduchowski
 
-## Informacje
-
-### Multiplatformowość
-
-Aby zbudować obrazy Docker dla wielu architektur (np. `amd64` i `arm64`), użyj narzędzia `docker buildx`. Przykładowa komenda:
-
-```bash
-docker buildx build --platform linux/amd64,linux/arm64 -t twoj-obraz:latest .
-```
-
-Powyższa komenda tworzy obraz kompatybilny zarówno z procesorami x86_64 (`amd64`), jak i ARM64. Upewnij się, że masz skonfigurowany builder:
-
-```bash
-docker buildx create --name multiarch-builder --use
-docker buildx inspect --bootstrap
-```
-
-Aby wypchnąć obraz do rejestru (np. Docker Hub):
-
-```bash
-docker buildx build --platform linux/amd64,linux/arm64 -t twoj-login/twoj-obraz:latest --push .
-```
-
-Możesz także uruchomić kontenery na różnych urządzeniach (np. Raspberry Pi, Mac z Apple Silicon, serwery x86) bez konieczności przebudowywania obrazów:
-
-```bash
-docker run --rm -p 8080:80 twoj-login/twoj-obraz:latest
-```
-
-Aby sprawdzić dostępne platformy dla danego obrazu:
-
-```bash
-docker buildx imagetools inspect twoj-login/twoj-obraz:latest
-```
-
-Dzięki temu projekt może być uruchamiany na wielu systemach operacyjnych i architekturach sprzętowych, co zwiększa jego uniwersalność i dostępność.
+# Informacje
 
 ## Uruchomienie projektu na Kubernetes z Ingress (Minikube)
 
@@ -45,8 +10,9 @@ Dzięki temu projekt może być uruchamiany na wielu systemach operacyjnych i ar
 
 W katalogu głównym repozytorium:
 ```bash
-docker build -t frontend:latest ./frontend
-docker build -t backend:latest ./backend
+docker build -t m1dnightsp/frontend:latest ./frontend
+docker build -t m1dnightsp/backend:latest  ./backend
+docker build -t m1dnightsp/database:latest ./database
 ```
 
 ### 2. Ustaw środowisko Dockera na Minikube
@@ -66,7 +32,22 @@ minikube addons enable ingress
 ### 4. Zastosuj manifesty Kubernetes
 
 ```bash
-kubectl apply -f k8s/
+kubectl apply -f k8s/database-configmap.yml
+kubectl apply -f k8s/database-deployment.yaml
+kubectl apply -f k8s/database-service.yaml
+# poczekaj na Ready
+kubectl rollout status deployment/postgres
+# dopiero potem wszystkie kolejne:
+kubectl apply -f k8s/backend-configmap.yaml
+kubectl apply -f k8s/backend-secret.yaml
+kubectl apply -f k8s/backend-deployment.yaml
+kubectl apply -f k8s/backend-service.yaml
+kubectl apply -f k8s/keycloak-realm-config.yaml
+kubectl apply -f k8s/keycloak-deployment.yaml
+kubectl apply -f k8s/keycloak-service.yaml
+kubectl apply -f k8s/frontend-deployment.yaml
+kubectl apply -f k8s/frontend-service.yaml
+kubectl apply -f k8s/ingress.yaml
 ```
 
 ### 5. Uruchom tunel Minikube (w nowym terminalu)
@@ -83,6 +64,8 @@ Przejdź do:
 http://127.0.0.1/
 ```
 Frontend powinien się wyświetlić, a żądania do `/users` będą przekierowane przez Ingress do backendu.
+
+Powinien się otworzyć panel logowania keycloak, wtedy można się zalogować podstawowymi user: admin i password: admin. Jeśli chcesz dodać użytkowników to można to zrobić przez keycloak dashboard `kubectl port-forward svc/keycloak 8080:8080`.
 
 ---
 

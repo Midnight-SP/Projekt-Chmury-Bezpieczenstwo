@@ -43,7 +43,6 @@ jobs:
           file: frontend/Dockerfile.prod
           platforms: linux/amd64,linux/arm64
           push: true
-          # tymczasowo wyłącz cache-from/cache-to dla frontend!!
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/frontend:${{ github.sha }}
             ${{ secrets.DOCKERHUB_USERNAME }}/frontend:latest
