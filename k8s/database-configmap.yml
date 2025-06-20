@@ -14,6 +14,8 @@ data:
         email VARCHAR(100) NOT NULL UNIQUE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
+
+    -- jeśli nie korzystasz już z posts możesz je usunąć
     CREATE TABLE posts (
         id SERIAL PRIMARY KEY,
         user_id INT NOT NULL,
@@ -22,6 +24,7 @@ data:
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
+
     INSERT INTO users (username, password, email) VALUES
     ('user1', 'password1', 'user1@example.com'),
     ('user2', 'password2', 'user2@example.com');
@@ -43,9 +46,10 @@ data:
       ('Koszulka', 'Koszulka bawełniana L', 45.00, 5),
       ('Długopis', 'Długopis żelowy', 5.00, 100);
 
+    -- tu była referencja do users.id więc zmieniamy INT→UUID (bez FK)
     CREATE TABLE orders (
       id SERIAL PRIMARY KEY,
-      user_id INT NOT NULL REFERENCES users(id),
+      user_id UUID NOT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
     CREATE TABLE order_items (

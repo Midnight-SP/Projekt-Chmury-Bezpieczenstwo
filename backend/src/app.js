@@ -84,9 +84,7 @@ app.get('/products', async (req, res) => {
 // Dodaj nowe zamówienie (z listą pozycji)
 app.post('/orders', async (req, res) => {
   try {
-    // zamiast UUID z tokena, rzutujemy lub dajemy 1
-    let userId = parseInt(req.auth?.sub, 10);
-    if (isNaN(userId)) userId = 1;
+    const userId = req.auth.sub;  // będzie UUID z tokena
 
     const items = Array.isArray(req.body.items) ? req.body.items : [];
     if (!items.length) return res.status(400).json({ message: 'No items provided' });
