@@ -83,34 +83,41 @@ app.get('/products', async (req, res) => {
 
 // Dodaj nowe zamówienie (z listą pozycji)
 app.post('/orders', async (req, res) => {
-  const userId = req.auth.payload.sub; // załóżmy, że sub to id użytkownika
-  const { items } = req.body; // [{ productId, quantity }, …]
-  const client = await pool.connect();
   try {
-    await client.query('BEGIN');
-    const orderRes = await client.query(
-      'INSERT INTO orders(user_id) VALUES($1) RETURNING id',
-      [userId]
-    );
-    const orderId = orderRes.rows[0].id;
-    const insertItem = `INSERT INTO order_items(order_id,product_id,quantity) VALUES($1,$2,$3)`;
-    for (let it of items) {
-      await client.query(insertItem, [orderId, it.productId, it.quantity]);
+    // zamiast UUID z tokena, rzutujemy lub dajemy 1
+    let userId = parseInt(req.auth?.sub, 10);
+    if (isNaN(userId)) userId = 1;
+
+    const items = Array.isArray(req.body.items) ? req.body.items : [];
+    if (!items.length) return res.status(400).json({ message: 'No items provided' });
+
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      const orderRes = await client.query(
+        'INSERT INTO orders(user_id) VALUES($1) RETURNING id',
+        [userId]
+      );
+      const orderId = orderRes.rows[0].id;
+
+      const insertItem = 'INSERT INTO order_items(order_id,product_id,quantity) VALUES($1,$2,$3)';
+      for (const it of items) {
+        await client.query(insertItem, [orderId, it.productId, it.quantity]);
+      }
+      await client.query('COMMIT');
+      return res.status(201).json({ orderId });
+    } finally {
+      client.release();
     }
-    await client.query('COMMIT');
-    res.status(201).json({ orderId });
   } catch (e) {
-    await client.query('ROLLBACK');
-    console.error(e);
-    res.status(500).send('Error creating order');
-  } finally {
-    client.release();
+    console.error('POST /orders error:', e);
+    return res.status(500).json({ message: 'Error creating order', error: e.message });
   }
 });
 
 // Pobierz zamówienia zalogowanego użytkownika wraz z pozycjami
 app.get('/orders', async (req, res) => {
-  const userId = req.auth.payload.sub;
+  const userId = req.auth.sub;
   try {
     const { rows } = await pool.query(
       `SELECT o.id, o.created_at,

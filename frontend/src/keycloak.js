@@ -8,4 +8,6 @@ const keycloak = new Keycloak({
   pkceMethod: 'S256'
 });
 
+window.keycloak = keycloak;
+
 export default keycloak;

@@ -15,6 +15,10 @@ function App() {
         if (!authenticated) return;
         setAuth(true);
 
+        // Wydrukuj token do konsoli i przypisz do window, żeby było łatwo skopiować
+        console.log('💠 Keycloak token:', keycloak.token);
+        window.kcToken = keycloak.token;
+
         // PRODUCTS
         fetch('/products', {
           headers: { Authorization: 'Bearer ' + keycloak.token }
@@ -38,7 +42,20 @@ function App() {
   }, []);
 
   const addToCart = p => {
-    setCart([...cart, { productId: p.id, name: p.name, price: p.price, qty: 1 }]);
+    setCart(prev => {
+      const idx = prev.findIndex(c => c.productId === p.id);
+      if (idx >= 0) {
+        // już jest → tylko zwiększamy qty
+        const updated = [...prev];
+        updated[idx] = { 
+          ...updated[idx], 
+          qty: updated[idx].qty + 1 
+        };
+        return updated;
+      }
+      // nowy wpis
+      return [...prev, { productId: p.id, name: p.name, price: p.price, qty: 1 }];
+    });
   };
 
   const checkout = () => {
@@ -58,37 +75,38 @@ function App() {
   if (!auth) return <div>Ładowanie...</div>;
 
   return (
-    <div style={{ padding: '2rem' }}>
+    <div className="flex-container">
       <h1>Sklepik</h1>
-
-      {/*
-      <h2>Użytkownicy Keycloak</h2>
-      <ul>
-        {users.map(u => <li key={u.id}>{u.username} ({u.email})</li>)}
-      </ul>
-      */}
-
-      <div style={{ display: 'flex', gap: '2rem' }}>
-        <div>
-          <h2>Produkty</h2>
-          <ul>
-            {products.map(p =>
-              <li key={p.id}>
-                {p.name} – {p.price.toFixed(2)} zł
-                <button onClick={() => addToCart(p)}>Dodaj</button>
-              </li>
-            )}
-          </ul>
-        </div>
-        <div>
-          <h2>Koszyk</h2>
-          <ul>
-            {cart.map((c,i)=>
-              <li key={i}>{c.name} x{c.qty} – {(c.price*c.qty).toFixed(2)} zł</li>
-            )}
-          </ul>
-          {cart.length>0 && <button onClick={checkout}>Zamów</button>}
-        </div>
+      <div className="products">
+        <h2>Produkty</h2>
+        <ul>
+          {products.map(p =>
+            <li key={p.id}>
+              {p.name} – {p.price.toFixed(2)} zł
+              <button onClick={() => addToCart(p)}>Dodaj</button>
+            </li>
+          )}
+        </ul>
+      </div>
+      <div className="cart">
+        <h2>Koszyk</h2>
+        <ul>
+          {cart.map(c =>
+            <li key={c.productId}>
+              {c.name} x{c.qty} – {(c.price * c.qty).toFixed(2)} zł
+            </li>
+          )}
+        </ul>
+        {cart.length > 0 && <>
+          <button onClick={checkout}>Zamów</button>
+          <div className="cart-total">
+            <strong>Suma: </strong>
+            {cart
+              .reduce((sum, c) => sum + c.price * c.qty, 0)
+              .toFixed(2)
+            } zł
+          </div>
+        </>}
       </div>
       <button onClick={() => keycloak.logout()}>Wyloguj</button>
     </div>
