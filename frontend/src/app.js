@@ -1,4 +1,3 @@
-// src/App.js
 import React, { useEffect, useState } from 'react';
 import keycloak from './keycloak';
 
@@ -7,15 +6,13 @@ function App() {
   const [products, setProducts] = useState([]);
   const [cart, setCart]         = useState([]);
 
+  // Keycloak initialization and fetching products
   useEffect(() => {
     keycloak
       .init({ onLoad: 'login-required', checkLoginIframe: false, pkceMethod: 'S256' })
       .then(authenticated => {
         if (!authenticated) return;
         setAuth(true);
-
-        // Usuń logowanie tokena
-        // console.log('💠 Keycloak token:', keycloak.token);
 
         fetch('/products', {
           headers: { Authorization: 'Bearer ' + keycloak.token }
@@ -27,14 +24,6 @@ function App() {
               : []
           ))
           .catch(() => setProducts([]));
-
-        // KC-USERS – tymczasowo wyłączone
-        // fetch('/kc-users', {
-        //   headers: { Authorization: 'Bearer ' + keycloak.token }
-        // })
-        //   .then(r => r.ok ? r.json() : [])
-        //   .then(setUsers)
-        //   .catch(() => setUsers([]));
       });
   }, []);
 
@@ -42,7 +31,6 @@ function App() {
     setCart(prev => {
       const idx = prev.findIndex(c => c.productId === p.id);
       if (idx >= 0) {
-        // już jest → tylko zwiększamy qty
         const updated = [...prev];
         updated[idx] = { 
           ...updated[idx], 
@@ -50,12 +38,10 @@ function App() {
         };
         return updated;
       }
-      // nowy wpis
       return [...prev, { productId: p.id, name: p.name, price: p.price, qty: 1 }];
     });
   };
 
-  // usuń 1 sztukę z koszyka (jak qty>1 to dekrement, inaczej usuń pozycję)
   const removeFromCart = productId => {
     setCart(prev => {
       const idx = prev.findIndex(c => c.productId === productId);
@@ -121,7 +107,6 @@ function App() {
         </div>
       </div>
 
-      {/* Przywrócony przycisk Wyloguj */}
       <div style={{ textAlign: 'center', marginTop: '1rem' }}>
         <button onClick={() => keycloak.logout()}>Wyloguj</button>
       </div>

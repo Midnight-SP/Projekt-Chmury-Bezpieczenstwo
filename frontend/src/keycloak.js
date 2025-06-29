@@ -1,5 +1,6 @@
 import Keycloak from 'keycloak-js';
 
+// Keycloak configuration
 const keycloak = new Keycloak({
   url: window.location.origin,
   realm: 'projekt',

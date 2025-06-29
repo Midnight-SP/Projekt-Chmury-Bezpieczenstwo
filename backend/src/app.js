@@ -1,43 +1,45 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const dotenv = require('dotenv');
-const { Pool } = require('pg'); // Import PostgreSQL client
+const { Pool } = require('pg');
 const cors = require('cors');
 const { auth } = require('express-oauth2-jwt-bearer');
-const fetch = require('node-fetch'); // Import fetch for making HTTP requests
+const fetch = require('node-fetch');
 const checkJwt = require('./auth');
 const { getAdminToken } = require('./kc-admin');
 
-dotenv.config(); // Load environment variables from .env
+// Load environment variables from .env file
+dotenv.config();
 
-const app = express(); // Initialize the app
+// Initialize Express app
+const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
-app.use(cors()); // Enable CORS
+app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// publiczny healthcheck MUSI być przed auth
+// Health check endpoint
 app.get('/health', (_req, res) => res.json({ status:"ok" }));
 
-// teraz JWT‐middleware chroni tylko pozostałe trasy
+// JWT authentication middleware
 app.use(checkJwt);
 
-// Sample route
+// Public route for testing
 app.get('/', (req, res) => {
     res.send('Welcome to the Cloud Technologies Project Backend!');
 });
 
-// Start the server
+// Protected route example
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
 
-// dodaj eksport aplikacji, by test mógł ją załadować
+// Export the app for testing or further configuration
 module.exports = app;
 
-// Configure PostgreSQL connection
+// Database connection pool
 const pool = new Pool({
     user: process.env.DB_USER,
     host: process.env.DB_HOST,
@@ -46,28 +48,30 @@ const pool = new Pool({
     port: process.env.DB_PORT,
 });
 
+// Test database connection
 app.get('/users', async (req, res) => {
     try {
-        const result = await pool.query('SELECT * FROM users'); // Fetch users from the database
-        res.json(result.rows); // Send the fetched users as JSON response
+        const result = await pool.query('SELECT * FROM users'); 
+        res.json(result.rows);
     } catch (error) {
         console.error('Error fetching users:', error);
         res.status(500).send('Internal Server Error');
     }
 });
 
+// Create a new user
 app.post('/users', async (req, res) => {
-    const { name, email } = req.body; // Extract user data from request body
+    const { name, email } = req.body;
     try {
-        const result = await pool.query('INSERT INTO users (name, email) VALUES ($1, $2) RETURNING *', [name, email]); // Insert new user into the database
-        res.status(201).json(result.rows[0]); // Send the created user as JSON response
+        const result = await pool.query('INSERT INTO users (name, email) VALUES ($1, $2) RETURNING *', [name, email]);
+        res.status(201).json(result.rows[0]);
     } catch (error) {
         console.error('Error creating user:', error);
         res.status(500).send('Internal Server Error');
     }
 });
 
-// Pobierz wszystkie produkty, rzutując price na float
+// Get all products
 app.get('/products', async (req, res) => {
   try {
     const { rows } = await pool.query(`
@@ -81,10 +85,10 @@ app.get('/products', async (req, res) => {
   }
 });
 
-// Dodaj nowe zamówienie (z listą pozycji)
+// Get a single product by ID
 app.post('/orders', async (req, res) => {
   try {
-    const userId = req.auth.sub;  // będzie UUID z tokena
+    const userId = req.auth.sub;
 
     const items = Array.isArray(req.body.items) ? req.body.items : [];
     if (!items.length) return res.status(400).json({ message: 'No items provided' });
@@ -113,7 +117,7 @@ app.post('/orders', async (req, res) => {
   }
 });
 
-// Pobierz zamówienia zalogowanego użytkownika wraz z pozycjami
+// Get all orders for the authenticated user
 app.get('/orders', async (req, res) => {
   const userId = req.auth.sub;
   try {
@@ -136,7 +140,7 @@ app.get('/orders', async (req, res) => {
   }
 });
 
-// Endpoint do pobierania użytkowników z Keycloak (bez ról)
+// Get all Keycloak users (requires admin token)
 app.get('/kc-users', async (_req, res) => {
   try {
     const token = await getAdminToken();
@@ -144,7 +148,6 @@ app.get('/kc-users', async (_req, res) => {
     const kcRes = await fetch(url, { headers:{ Authorization:'Bearer '+token } });
     const users = await kcRes.json();
     if (!kcRes.ok) return res.status(kcRes.status).json({ message:'KC admin API error', details:users });
-    // zwracamy tylko wybrane pola
     res.json(users.map(u => ({
       id: u.id, username: u.username, email: u.email, enabled: u.enabled
     })));
