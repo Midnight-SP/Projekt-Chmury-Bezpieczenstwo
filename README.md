@@ -1,7 +1,5 @@
 # Projekt łączony dla Technologii Chmurowych i Bezpieczeństwa Aplikacji Webowych
 
-## Autor: Michał Ryduchowski
-
 # Informacje
 
 ## Uruchomienie projektu na Kubernetes z Ingress (Minikube)
